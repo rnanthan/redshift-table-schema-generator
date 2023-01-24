@@ -1,0 +1,1 @@
+# redshift-table-schema-generator
