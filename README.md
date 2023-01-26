@@ -1,10 +1,9 @@
 **Amazon Redshift Table Schema Generator**
 
-Redshift is used as a centralised repository that stores data from different sources in a unified schema and structure to create a single source of truth. 
+Redshift is used as a centralised repository to store data from different sources in a unified schema and structure to create a single source of truth. 
 We often get CSV extracts from third-party systems and stored it in S3 data lake and 
-then copied to Redshift Database using Redshift COPY command. Before copying, we have to create tables in Redshift database to load CSV data. 
-This utility, Amazon Redshift Table Schema Generator, enables you to generate the table schema and you can automate the table creation in Redshift using 
-this tool. 
+then copied to Redshift Database using Redshift COPY command. Before copying, we have to manually create tables in Redshift database to load CSV data. 
+This utility, Amazon Redshift Table Schema Generator, enables you to generate the table schema and automate the table creation in Redshift. The following diagram describes the steps. 
 
 <img width="1064" alt="image" src="https://user-images.githubusercontent.com/4962048/214752672-454e4f7f-f959-43e3-9a0b-b423b5f3fdf8.png">
 
@@ -21,18 +20,18 @@ You need to provide Redshift connection parameters and S3 bucket name as CloudFo
 
 Set the following environment variable
 
-    export AWS_PROFILE=<AWS Profile>  ## Make sure create AWS profile with right aws_access_key_id and aws_secret_access_key
+    export AWS_PROFILE=<AWS Profile>  ## Make sure you created AWS profile with right aws_access_key_id and aws_secret_access_key
     export ENV=local  ## set to local if you are running the script locally. 
 
 Install Python libs 
 
     pip3 install -r requirements.txt
 
-Run the schema generator script. You have to provide CSV filename in S3 bucket and table name as argument. Schema name is optional and if it is not provided, table will be create under default schema, public.
+Run the schema generator script. You have to provide CSV filename in S3 bucket and table name as arguments. Schema name is optional and if it is not provided, table will be create under default schema, public.
 
     python3 table_schema_generator.py <CSV filename in S3> <table_name> -s <schema_name>
 
-This script will generate SQL for creating table. Script will find the best datatype, VARCHAR length, DISTKEY and SORTKEY based on the data.
+This script will generate SQL for creating table. Script will find the best datatypes, VARCHAR length, DISTKEY and SORTKEY based on the data.
 
 Generated output will be stored ./output location and feel free to edit if you want to change anything. 
 
