@@ -39,7 +39,7 @@ def create_redshift_table_stmt(df, table, schema='public'):
     for d in d_types:
         if d_types[d].dtype == 'string':
             try:
-                pd.to_datetime(df[d], dayfirst=True, errors='ignore')
+                pd.to_datetime(df[d], dayfirst=True)
                 output.write(f'{change_case(d)} TIMESTAMP, ')
                 if sort_key == EMPTY:
                     sort_key = change_case(d)

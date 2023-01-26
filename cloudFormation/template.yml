@@ -149,7 +149,11 @@ Outputs:
       Name: !Sub '${AWS::StackName}-stackname'
   S3Bucket:
     Description: Input Bucket ARN.
-    Value: !Ref S3Bucket
+    Value: !GetAtt S3Bucket.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-S3BucketARN'
   RedshiftCopyRole:
     Description: Redshift Copy Role ARN.
-    Value: !Ref RedshiftCopyRole
+    Value: !GetAtt RedshiftCopyRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-RedshiftCopyRoleARN'
