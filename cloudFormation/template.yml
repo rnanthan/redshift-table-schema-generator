@@ -1,0 +1,155 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'This stack SSM parameters needed to run redshift-table-schema-generator.'
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+    - Label:
+        default: 'Redshift Connection Parameters'
+      Parameters:
+        - RedshiftDbHost
+        - RedshiftDbUser
+        - RedshiftDbPassword
+        - RedshiftDbName
+    - Label:
+        default: 'S3 bucket details'
+      Parameters:
+        - InputBucketName
+    NoEcho: true
+    Description: Service now adapter oauth2 client id value.
+    MinLength: 1
+Parameters:
+  RedshiftDbHost:
+    Description: 'Redshift DB Host.'
+    Type: String
+    MinLength: 1
+  RedshiftDbUser:
+    Description: 'Redshift DB User.'
+    Type: String
+    MinLength: 1
+  RedshiftDbPassword:
+    Description: 'Redshift DB Password.'
+    Type: String
+    MinLength: 1
+    NoEcho: true
+  RedshiftDbName:
+    Description: 'Redshift DB Name.'
+    Type: String
+    MinLength: 1
+  InputBucketName:
+    Description: 'Bucket Name.'
+    Type: String
+    MinLength: 1
+
+Resources:
+  ParameterRedshiftDbHost:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub '/redshift-table-schema-generator/redshift.dbHost'
+      Type: String
+      Value: !Ref RedshiftDbHost
+      Tags:
+        "Type": "Redshift Connection Parameter"
+  ParameterRedshiftDbUser:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub '/redshift-table-schema-generator/redshift.dbUser'
+      Type: String
+      Value: !Ref RedshiftDbUser
+      Tags:
+        "Type": "Redshift Connection Parameter"
+  ParameterRedshiftDbPassword:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub '/redshift-table-schema-generator/redshift.dbPassword'
+      Type: String
+      Value: !Ref RedshiftDbPassword
+      Tags:
+        "Type": "Redshift Connection Parameter"
+  ParameterRedshiftDbName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub '/redshift-table-schema-generator/redshift.dbName'
+      Type: String
+      Value: !Ref RedshiftDbName
+      Tags:
+        "Type": "Redshift Connection Parameter"
+  ParameterInputBucketName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub '/redshift-table-schema-generator/input.bucket.name'
+      Type: String
+      Value: !Ref InputBucketName
+      Tags:
+        "Type": "S3 Bucket Details."
+
+  S3Bucket:
+    DeletionPolicy: Retain
+    Type: 'AWS::S3::Bucket'
+    Description: Creating Amazon S3 bucket.
+    Properties:
+      BucketName: !Ref InputBucketName
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+
+  RedshiftCopyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: redshift-copy-role
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'redshift.amazonaws.com'
+                - 's3.amazonaws.com'
+            Action: [ 'sts:AssumeRole' ]
+      Path: /
+      Policies:
+        - PolicyName: redshift-copy-policy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:ListAllMyBuckets'
+                Resource:
+                  - 'arn:aws:s3:::*'
+              - Effect: Allow
+                Action:
+                  - 's3:ListBucket'
+                  - 's3:GetBucketLocation'
+                Resource:
+                  - !Sub 'arn:aws:s3:::${InputBucketName}'
+              - Effect: Allow
+                Action:
+                  - 's3:GetObject'
+                  - 's3:PutObject'
+                Resource:
+                  - !Sub 'arn:aws:s3:::${InputBucketName}/*'
+              - Effect: Allow
+                Action:
+                  - 'kms:Decrypt'
+                Resource:
+                  - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
+
+Outputs:
+  StackName:
+    Description: 'Stack name.'
+    Value: !Sub '${AWS::StackName}'
+    Export:
+      Name: !Sub '${AWS::StackName}-stackname'
+  S3Bucket:
+    Description: Input Bucket ARN.
+    Value: !Ref S3Bucket
+  RedshiftCopyRole:
+    Description: Redshift Copy Role ARN.
+    Value: !Ref RedshiftCopyRole

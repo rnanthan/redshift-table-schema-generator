@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS public.sample_data (index INTEGER, user_id TIMESTAMP, first_name TIMESTAMP, last_name TIMESTAMP, sex TIMESTAMP, email TIMESTAMP, phone TIMESTAMP, date_of_birth TIMESTAMP, job_title TIMESTAMP, weight_in_kg FLOAT, in_job TIMESTAMP) DISTSTYLE KEY DISTKEY(index) SORTKEY user_id;
